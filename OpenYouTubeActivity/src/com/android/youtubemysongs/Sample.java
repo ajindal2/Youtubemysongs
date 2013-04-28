@@ -71,8 +71,10 @@ public class Sample extends Activity {
         		 // String name = musiccursor.getString(musiccursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
         		  //String albumName = musiccursor.getString(musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
         		  
-        		  String songname = "Junoon";
-        		  URL jsonURL = new URL("http://gdata.youtube.com/feeds/api/videos?q=Junoon&max-results=1&v=2&alt=jsonc"); 
+        		  String songname = "Hai Junoon";
+        		  songname = songname.replace(" ", "%20");
+        		  Log.v("rahul", songname);
+        		  URL jsonURL = new URL("http://gdata.youtube.com/feeds/api/videos?q="+songname+"&max-results=1&format=5&v=2&alt=jsonc"); 
         		  URLConnection jc = jsonURL.openConnection(); 
         		  InputStream is = jc.getInputStream(); 
         		  String jsonTxt = IOUtils.toString( is );
