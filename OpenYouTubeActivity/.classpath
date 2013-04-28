@@ -10,5 +10,6 @@
 	<classpathentry kind="lib" path="libs/gdata-media-1.0.jar"/>
 	<classpathentry kind="lib" path="libs/gdata-core-1.0.jar"/>
 	<classpathentry kind="lib" path="libs/mail.jar"/>
+	<classpathentry kind="lib" path="libs/guava-14.0.1.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
