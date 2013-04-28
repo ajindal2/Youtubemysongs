@@ -7,6 +7,6 @@
 	<classpathentry kind="lib" path="libs/gdata-client-1.0.jar"/>
 	<classpathentry kind="lib" path="libs/gdata-youtube-2.0.jar"/>
 	<classpathentry kind="lib" path="openyoutubeactivity.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Aanchal/Downloads/gdata/gdata/java/lib/gdata-media-1.0.jar"/>
+	<classpathentry kind="lib" path="libs/gdata-media-1.0.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
