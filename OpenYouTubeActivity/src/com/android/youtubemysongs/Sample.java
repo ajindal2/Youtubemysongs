@@ -1,8 +1,10 @@
 package com.android.youtubemysongs;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.List;
 
 import android.app.Activity;
@@ -13,6 +15,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -20,6 +23,8 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
+
+import org.apache.commons.io.IOUtils;
 
 import com.google.gdata.client.youtube.YouTubeQuery;
 import com.google.gdata.data.youtube.*;
@@ -61,7 +66,18 @@ public class Sample extends Activity {
     private OnItemClickListener musicgridlistener = new OnItemClickListener() {
           public void onItemClick(AdapterView parent, View v, int position,long id) {
         	  
-        	  String videoId="1ybUPCdkYvI";
+        	  try {
+        		  URL jsonURL = new URL("http://gdata.youtube.com/feeds/api/playlists/6A40AB04892E2A1F?v=2&alt=jsonc"); 
+        		  URLConnection jc = jsonURL.openConnection(); 
+        		  InputStream is = jc.getInputStream(); 
+        		  String jsonTxt = IOUtils.toString( is );
+        		  Log.v("rahul",jsonTxt);
+        	  } catch (Exception e) {
+        		  e.printStackTrace();
+        	  }
+        	 
+        	  
+        	  String videoId="1ybUPCdkYvI";/*
         	  YouTubeService service = new YouTubeService("YoutubeMySongs-1.0");
         	  YouTubeQuery query=null;
         		try {
@@ -91,7 +107,7 @@ public class Sample extends Activity {
             	VideoEntry videoEntry = allVideos.iterator().next();
             	 
             	YouTubeMediaGroup mediaGroup = videoEntry.getMediaGroup();
-            	 videoId=mediaGroup.getVideoId();
+            	 videoId=mediaGroup.getVideoId();*/
               Intent lVideoIntent = new Intent(null, Uri.parse("ytv://"+videoId), Sample.this, YouTubemysongs.class);
               startActivity(lVideoIntent);
           }
