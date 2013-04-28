@@ -1,5 +1,10 @@
 package com.android.youtubemysongs;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.List;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -57,7 +62,7 @@ public class Sample extends Activity {
           public void onItemClick(AdapterView parent, View v, int position,long id) {
         	  
         	  String videoId="1ybUPCdkYvI";
-        	  /*YouTubeService service = new YouTubeService("Aanchal Jindal","AI39si5ScWdXzn9WgOB7t8DyeT704NJZotXGdIx1RCtczOwPQWIVuw2Dks3kygY18ucirOLYY3yV3pPmp-sJJsG2dXyyKnIW0A");
+        	  YouTubeService service = new YouTubeService("YoutubeMySongs-1.0");
         	  YouTubeQuery query=null;
         		try {
         			query = new YouTubeQuery(new URL("http://gdata.youtube.com/feeds/api/videos"));
@@ -86,7 +91,7 @@ public class Sample extends Activity {
             	VideoEntry videoEntry = allVideos.iterator().next();
             	 
             	YouTubeMediaGroup mediaGroup = videoEntry.getMediaGroup();
-            	 videoId=mediaGroup.getVideoId();*/
+            	 videoId=mediaGroup.getVideoId();
               Intent lVideoIntent = new Intent(null, Uri.parse("ytv://"+videoId), Sample.this, YouTubemysongs.class);
               startActivity(lVideoIntent);
           }
