@@ -25,6 +25,8 @@ import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 
 import org.apache.commons.io.IOUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import com.google.gdata.client.youtube.YouTubeQuery;
 import com.google.gdata.data.youtube.*;
@@ -51,10 +53,7 @@ public class Sample extends Activity {
     @SuppressWarnings("deprecation")
 	private void init_phone_music_grid() {
           System.gc();
-          String[] proj = { MediaStore.Audio.Media._ID,
-		  MediaStore.Audio.Media.DATA,
-		  MediaStore.Audio.Media.DISPLAY_NAME,
-		  MediaStore.Video.Media.SIZE };
+          String[] proj = { MediaStore.Audio.Media._ID,MediaStore.Audio.Media.DATA,MediaStore.Audio.Media.DISPLAY_NAME,MediaStore.Video.Media.SIZE };
           musiccursor = managedQuery(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,proj, null, null, null);
           count = musiccursor.getCount();
           musiclist = (ListView) findViewById(R.id.PhoneMusicList);
@@ -65,20 +64,34 @@ public class Sample extends Activity {
 
     private OnItemClickListener musicgridlistener = new OnItemClickListener() {
           public void onItemClick(AdapterView parent, View v, int position,long id) {
-        	  
+        	  String id0=null;
         	  try {
-        		  URL jsonURL = new URL("http://gdata.youtube.com/feeds/api/playlists/6A40AB04892E2A1F?v=2&alt=jsonc"); 
+        		  System.gc();
+        		  //String artist = musiccursor.getString(musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST));
+        		 // String name = musiccursor.getString(musiccursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
+        		  //String albumName = musiccursor.getString(musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
+        		  
+        		  String songname = "Junoon";
+        		  URL jsonURL = new URL("http://gdata.youtube.com/feeds/api/videos?q=Junoon&max-results=1&v=2&alt=jsonc"); 
         		  URLConnection jc = jsonURL.openConnection(); 
         		  InputStream is = jc.getInputStream(); 
         		  String jsonTxt = IOUtils.toString( is );
-        		  Log.v("rahul",jsonTxt);
+        		  JSONObject jj = new JSONObject(jsonTxt); 
+        		  JSONObject jdata = jj.getJSONObject("data");
+        		  JSONArray aitems = jdata.getJSONArray("items");
+        		  JSONObject item0 = aitems.getJSONObject(0);
+        		  id0 = item0.getString("id"); 
+        		  
+        		  //Log.v("aanchal",artist);
+        		  //Log.v("aanchal",name);
+        		  //Log.v("aanchal",name);
         	  } catch (Exception e) {
         		  e.printStackTrace();
         	  }
         	 
         	  
-        	  String videoId="1ybUPCdkYvI";/*
-        	  YouTubeService service = new YouTubeService("YoutubeMySongs-1.0");
+        	 // String videoId="1ybUPCdkYvI";
+        	  /*YouTubeService service = new YouTubeService("YoutubeMySongs-1.0");
         	  YouTubeQuery query=null;
         		try {
         			query = new YouTubeQuery(new URL("http://gdata.youtube.com/feeds/api/videos"));
@@ -108,7 +121,7 @@ public class Sample extends Activity {
             	 
             	YouTubeMediaGroup mediaGroup = videoEntry.getMediaGroup();
             	 videoId=mediaGroup.getVideoId();*/
-              Intent lVideoIntent = new Intent(null, Uri.parse("ytv://"+videoId), Sample.this, YouTubemysongs.class);
+              Intent lVideoIntent = new Intent(null, Uri.parse("ytv://"+id0), Sample.this, YouTubemysongs.class);
               startActivity(lVideoIntent);
           }
     };
