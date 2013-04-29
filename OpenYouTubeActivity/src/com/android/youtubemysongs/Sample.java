@@ -1,10 +1,7 @@
 package com.android.youtubemysongs;
 
-<<<<<<< HEAD
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-=======
->>>>>>> e344ecdfc4cf61a0cfe9d45854665d16cb59e0df
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
@@ -77,16 +74,21 @@ public class Sample extends Activity {
                   String artist = musiccursor.getString(col1);
                   String album = musiccursor.getString(col2);
         		  title=title.replace(" ", "%20");	  
-        		  String url="http://gdata.youtube.com/feeds/api/videos?q="+title+"&max-results=10&v=2&format=5&alt=jsonc";
+        		  String url="http://gdata.youtube.com/feeds/api/videos?q="+title+"&max-results=5&v=2&format=5&alt=jsonc";
         		  URL jsonURL = new URL(url); 
         		  URLConnection jc = jsonURL.openConnection(); 
         		  InputStream is = jc.getInputStream(); 
         		  String jsonTxt = IOUtils.toString( is );
         		  JSONObject jj = new JSONObject(jsonTxt); 
         		  JSONObject jdata = jj.getJSONObject("data");
-        		  JSONArray aitems = jdata.getJSONArray("items");
+        		  int totalItems = Math.min(10,jdata.getInt("totalItems"));
         		  
-        		  while(lInfoStr.contains("fail")&&i<10){ 
+        		  JSONArray aitems = null;
+        		  
+        		  if (totalItems > 0)
+        			  aitems = jdata.getJSONArray("items");
+        		  
+        		  while(lInfoStr.contains("fail")&&i<totalItems){ 
 	        		  JSONObject item0 = aitems.getJSONObject(i);
 	        		  id0 = item0.getString("id");   
 	        		  HttpClient lClient = new DefaultHttpClient();
@@ -96,18 +98,14 @@ public class Sample extends Activity {
 	      			  ByteArrayOutputStream lBOS = new ByteArrayOutputStream();	
 	      			  lResp.getEntity().writeTo(lBOS);
 	      			  lInfoStr = new String(lBOS.toString("UTF-8"));
-	      			  //Log.v("AANCHAL",lInfoStr);
 	      			  i++;
         		  }
-        		  if(i>=10){
-        			  Log.v("AANCHAL", "here");
-        			  Toast.makeText(getApplicationContext(), "YOUR TEXT", Toast.LENGTH_LONG).show();
-        		  //Toast.makeText(getApplicationContext(), "Cannot play this video due to Youtube permissions policy", Toast.LENGTH_LONG).show();}
-        		  }
-            	  else{
+        		  if(i>=totalItems){
+        		      Toast.makeText(getApplicationContext(), "Sorry! No video found :(", Toast.LENGTH_SHORT).show();
+        		  } else{
     	              Intent lVideoIntent = new Intent(null, Uri.parse("ytv://"+id0), Sample.this, YouTubemysongs.class);
     	              startActivity(lVideoIntent);
-            		  }
+            	  }
         	  } catch (Exception e) {e.printStackTrace();}
         	 
         	  
