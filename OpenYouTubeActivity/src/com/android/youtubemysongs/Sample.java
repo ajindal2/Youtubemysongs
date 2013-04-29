@@ -70,13 +70,17 @@ public class Sample extends Activity {
         		  music_column_index = musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE);
         		  int col1=musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST);
         		  int col2=musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM);
-
         		  musiccursor.moveToPosition(position);
                   String title = musiccursor.getString(music_column_index);
                   String artist = musiccursor.getString(col1);
-                  String album = musiccursor.getString(col2);
-        		  title=title.replace(" ", "%20");	  
+                  String album = musiccursor.getString(col2);  
+                  
+                  if(!artist.contains("<unknown>"))title=(title+" "+artist).replace(" ", "%20");
+                  else if(!album.contains("<unknown>")) title=(title+" "+album).replace(" ", "%20");
+                  else title=(title).replace(" ", "%20");
+                  		  	
         		  String url="http://gdata.youtube.com/feeds/api/videos?q="+title+"&max-results="+MAX_QUERY_SONGS+"&v=2&format=5&alt=jsonc";
+
         		  URL jsonURL = new URL(url); 
         		  URLConnection jc = jsonURL.openConnection(); 
         		  InputStream is = jc.getInputStream(); 
