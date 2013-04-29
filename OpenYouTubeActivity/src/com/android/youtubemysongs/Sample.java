@@ -34,6 +34,8 @@ import com.android.youtubemysongs.R;
 
 public class Sample extends Activity {
 
+	static final int MAX_QUERY_SONGS = 5;
+	
 	ListView musiclist;
     Cursor musiccursor;
     int music_column_index;
@@ -74,14 +76,14 @@ public class Sample extends Activity {
                   String artist = musiccursor.getString(col1);
                   String album = musiccursor.getString(col2);
         		  title=title.replace(" ", "%20");	  
-        		  String url="http://gdata.youtube.com/feeds/api/videos?q="+title+"&max-results=5&v=2&format=5&alt=jsonc";
+        		  String url="http://gdata.youtube.com/feeds/api/videos?q="+title+"&max-results="+MAX_QUERY_SONGS+"&v=2&format=5&alt=jsonc";
         		  URL jsonURL = new URL(url); 
         		  URLConnection jc = jsonURL.openConnection(); 
         		  InputStream is = jc.getInputStream(); 
         		  String jsonTxt = IOUtils.toString( is );
         		  JSONObject jj = new JSONObject(jsonTxt); 
         		  JSONObject jdata = jj.getJSONObject("data");
-        		  int totalItems = Math.min(10,jdata.getInt("totalItems"));
+        		  int totalItems = Math.min(MAX_QUERY_SONGS,jdata.getInt("totalItems"));
         		  
         		  JSONArray aitems = null;
         		  
