@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.List;
 
 import android.app.Activity;
@@ -28,10 +29,6 @@ import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.google.gdata.client.youtube.YouTubeQuery;
-import com.google.gdata.data.youtube.*;
-import com.google.gdata.util.ServiceException;
-import com.google.gdata.client.youtube.YouTubeService;
 import com.android.youtubemysongs.R;
 
 public class Sample extends Activity {
@@ -53,7 +50,7 @@ public class Sample extends Activity {
     @SuppressWarnings("deprecation")
 	private void init_phone_music_grid() {
           System.gc();
-          String[] proj = { MediaStore.Audio.Media._ID,MediaStore.Audio.Media.DATA,MediaStore.Audio.Media.DISPLAY_NAME,MediaStore.Video.Media.SIZE };
+          String[] proj = { MediaStore.Audio.Media._ID,MediaStore.Audio.Media.DATA,MediaStore.Audio.Media.DISPLAY_NAME,MediaStore.Video.Media.SIZE,MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.TITLE,MediaStore.Audio.Media.ALBUM };
           musiccursor = managedQuery(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,proj, null, null, null);
           count = musiccursor.getCount();
           musiclist = (ListView) findViewById(R.id.PhoneMusicList);
@@ -67,12 +64,19 @@ public class Sample extends Activity {
         	  String id0=null;
         	  try {
         		  System.gc();
-        		  //String artist = musiccursor.getString(musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST));
-        		 // String name = musiccursor.getString(musiccursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
-        		  //String albumName = musiccursor.getString(musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
-        		  
-        		  String songname = "Junoon";
-        		  URL jsonURL = new URL("http://gdata.youtube.com/feeds/api/videos?q=Junoon&max-results=1&v=2&alt=jsonc"); 
+        		  music_column_index = musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE);
+        		  int col1=musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST);
+        		  int col2=musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM);
+        		  musiccursor.moveToPosition(position);
+                  String title = musiccursor.getString(music_column_index);
+                  String artist = musiccursor.getString(col1);
+                  String album = musiccursor.getString(col2);
+                  
+        		  String songname = "Hai Junoon";//title+"+"+artist+"+"+album;
+        		  title=title.replace(" ", "%20");
+        		  String url="http://gdata.youtube.com/feeds/api/videos?q="+title+"&max-results=1&v=2&format=5&alt=jsonc";
+        		  //URLEncoder.encode(url, "utf-8");
+        		  URL jsonURL = new URL(url); 
         		  URLConnection jc = jsonURL.openConnection(); 
         		  InputStream is = jc.getInputStream(); 
         		  String jsonTxt = IOUtils.toString( is );
@@ -82,45 +86,14 @@ public class Sample extends Activity {
         		  JSONObject item0 = aitems.getJSONObject(0);
         		  id0 = item0.getString("id"); 
         		  
-        		  //Log.v("aanchal",artist);
-        		  //Log.v("aanchal",name);
-        		  //Log.v("aanchal",name);
+        		  Log.v("AANCHAL",artist);
+        		  Log.v("aanchal",album);
+        		  Log.v("aanchal",title);
         	  } catch (Exception e) {
         		  e.printStackTrace();
         	  }
         	 
-        	  
-        	 // String videoId="1ybUPCdkYvI";
-        	  /*YouTubeService service = new YouTubeService("YoutubeMySongs-1.0");
-        	  YouTubeQuery query=null;
-        		try {
-        			query = new YouTubeQuery(new URL("http://gdata.youtube.com/feeds/api/videos"));
-        		} catch (MalformedURLException e) {
-        			// TODO Auto-generated catch block
-        			e.printStackTrace();
-        		}
-            	// order results by the number of views (most viewed first)
-            	query.setOrderBy(YouTubeQuery.OrderBy.VIEW_COUNT);
-
-            	// search for puppies and include restricted content in the search results
-            	query.setFullTextQuery("puppy");
-            	query.setSafeSearch(YouTubeQuery.SafeSearch.NONE);
-
-            	VideoFeed videoFeed=null;
-        		try {
-        			videoFeed = service.query(query, VideoFeed.class);
-        		} catch (IOException e) {
-        			// TODO Auto-generated catch block
-        			e.printStackTrace();
-        		} catch (ServiceException e) {
-        			// TODO Auto-generated catch block
-        			e.printStackTrace();
-        		}
-            	List<VideoEntry> allVideos = videoFeed.getEntries() ;
-            	VideoEntry videoEntry = allVideos.iterator().next();
-            	 
-            	YouTubeMediaGroup mediaGroup = videoEntry.getMediaGroup();
-            	 videoId=mediaGroup.getVideoId();*/
+        	
               Intent lVideoIntent = new Intent(null, Uri.parse("ytv://"+id0), Sample.this, YouTubemysongs.class);
               startActivity(lVideoIntent);
           }
@@ -145,7 +118,7 @@ public class Sample extends Activity {
                 return position;
           }
 
-          public View getView(int position, View convertView, ViewGroup parent) {
+         public View getView(int position, View convertView, ViewGroup parent) {
                 System.gc();
                 TextView tv = new TextView(mContext.getApplicationContext());
                 String id = null;
