@@ -43,7 +43,7 @@ public class Sample extends Activity {
     @SuppressWarnings("deprecation")
 	private void init_phone_music_grid() {
           System.gc();
-          String[] proj = { MediaStore.Audio.Media._ID,MediaStore.Audio.Media.DATA,MediaStore.Audio.Media.DISPLAY_NAME,MediaStore.Video.Media.SIZE,MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.TITLE,MediaStore.Audio.Media.ALBUM };
+          String[] proj = { MediaStore.Audio.Media._ID,MediaStore.Audio.Media.DISPLAY_NAME,MediaStore.Video.Media.SIZE,MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.TITLE,MediaStore.Audio.Media.ALBUM };
           musiccursor = managedQuery(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,proj, null, null, null);
           count = musiccursor.getCount();
           musiclist = (ListView) findViewById(R.id.PhoneMusicList);
@@ -63,11 +63,8 @@ public class Sample extends Activity {
                   String title = musiccursor.getString(music_column_index);
                   String artist = musiccursor.getString(col1);
                   String album = musiccursor.getString(col2);
-                  
-        		  String songname = "Hai Junoon";//title+"+"+artist+"+"+album;
-        		  title=title.replace(" ", "%20");
+                  title=title.replace(" ", "%20");
         		  String url="http://gdata.youtube.com/feeds/api/videos?q="+title+"&max-results=1&v=2&format=5&alt=jsonc";
-        		  //URLEncoder.encode(url, "utf-8");
         		  URL jsonURL = new URL(url); 
         		  URLConnection jc = jsonURL.openConnection(); 
         		  InputStream is = jc.getInputStream(); 
