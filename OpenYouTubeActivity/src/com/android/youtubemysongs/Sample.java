@@ -43,7 +43,7 @@ public class Sample extends Activity {
     @SuppressWarnings("deprecation")
 	private void init_phone_music_grid() {
           System.gc();
-          String[] proj = { MediaStore.Audio.Media._ID,MediaStore.Audio.Media.DISPLAY_NAME,MediaStore.Video.Media.SIZE,MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.TITLE,MediaStore.Audio.Media.ALBUM };
+          String[] proj = { MediaStore.Audio.Media._ID,MediaStore.Audio.Media.DISPLAY_NAME,MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.TITLE,MediaStore.Audio.Media.ALBUM };
           musiccursor = managedQuery(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,proj, null, null, null);
           count = musiccursor.getCount();
           musiclist = (ListView) findViewById(R.id.PhoneMusicList);
@@ -117,11 +117,10 @@ public class Sample extends Activity {
         		 tv = (TextView) convertView;
         	 }
         	 musiccursor.moveToPosition(position);
-        	 music_column_index = musiccursor
-        	 .getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME);
+        	 music_column_index = musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE);
         	 id = musiccursor.getString(music_column_index);
-        	 music_column_index = musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE);
-        	 id += " Size(KB):" + musiccursor.getString(music_column_index);
+        	 music_column_index = musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST);
+        	 id += " - " + musiccursor.getString(music_column_index);
         	 tv.setText(id);
         	 return tv;	 
         }
