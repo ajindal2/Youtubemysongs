@@ -1,5 +1,6 @@
 package com.android.youtubemysongs;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -24,8 +25,13 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.Toast;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -62,20 +68,20 @@ public class Sample extends Activity {
     private OnItemClickListener musicgridlistener = new OnItemClickListener() {
           public void onItemClick(AdapterView parent, View v, int position,long id) {
         	  String id0=null;
+        	  int i=0;
         	  try {
         		  System.gc();
+        		  String lInfoStr = "fail";
         		  music_column_index = musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE);
         		  int col1=musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST);
         		  int col2=musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM);
+
         		  musiccursor.moveToPosition(position);
                   String title = musiccursor.getString(music_column_index);
                   String artist = musiccursor.getString(col1);
                   String album = musiccursor.getString(col2);
-                  
-        		  String songname = "Hai Junoon";//title+"+"+artist+"+"+album;
-        		  title=title.replace(" ", "%20");
-        		  String url="http://gdata.youtube.com/feeds/api/videos?q="+title+"&max-results=1&v=2&format=5&alt=jsonc";
-        		  //URLEncoder.encode(url, "utf-8");
+        		  title=title.replace(" ", "%20");	  
+        		  String url="http://gdata.youtube.com/feeds/api/videos?q="+title+"&max-results=10&v=2&format=5&alt=jsonc";
         		  URL jsonURL = new URL(url); 
         		  URLConnection jc = jsonURL.openConnection(); 
         		  InputStream is = jc.getInputStream(); 
@@ -83,19 +89,32 @@ public class Sample extends Activity {
         		  JSONObject jj = new JSONObject(jsonTxt); 
         		  JSONObject jdata = jj.getJSONObject("data");
         		  JSONArray aitems = jdata.getJSONArray("items");
-        		  JSONObject item0 = aitems.getJSONObject(0);
-        		  id0 = item0.getString("id"); 
         		  
-        		  Log.v("AANCHAL",artist);
-        		  Log.v("aanchal",album);
-        		  Log.v("aanchal",title);
-        	  } catch (Exception e) {
-        		  e.printStackTrace();
-        	  }
+        		  while(lInfoStr.contains("fail")&&i<10){ 
+	        		  JSONObject item0 = aitems.getJSONObject(i);
+	        		  id0 = item0.getString("id");   
+	        		  HttpClient lClient = new DefaultHttpClient();
+	      			  HttpGet lGetMethod = new HttpGet(YouTubemysongs.YOUTUBE_VIDEO_INFORMATION_URL + id0);
+	      			  HttpResponse lResp = null;
+	      			  lResp = lClient.execute(lGetMethod);	
+	      			  ByteArrayOutputStream lBOS = new ByteArrayOutputStream();	
+	      			  lResp.getEntity().writeTo(lBOS);
+	      			  lInfoStr = new String(lBOS.toString("UTF-8"));
+	      			  //Log.v("AANCHAL",lInfoStr);
+	      			  i++;
+        		  }
+        		  if(i>=10){
+        			  Log.v("AANCHAL", "here");
+        			  Toast.makeText(getApplicationContext(), "YOUR TEXT", Toast.LENGTH_LONG).show();
+        		  //Toast.makeText(getApplicationContext(), "Cannot play this video due to Youtube permissions policy", Toast.LENGTH_LONG).show();}
+        		  }
+            	  else{
+    	              Intent lVideoIntent = new Intent(null, Uri.parse("ytv://"+id0), Sample.this, YouTubemysongs.class);
+    	              startActivity(lVideoIntent);
+            		  }
+        	  } catch (Exception e) {e.printStackTrace();}
         	 
-        	
-              Intent lVideoIntent = new Intent(null, Uri.parse("ytv://"+id0), Sample.this, YouTubemysongs.class);
-              startActivity(lVideoIntent);
+        	  
           }
     };
 
