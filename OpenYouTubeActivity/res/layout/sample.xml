@@ -4,7 +4,7 @@
       android:layout_height="fill_parent">
       <ListView
             android:id="@+id/PhoneMusicList"
-            android:textSize="32sp"
+            android:dividerHeight="4sp"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"></ListView>
+            android:layout_height="fill_parent"/>
 </LinearLayout>

@@ -9,9 +9,14 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -166,8 +171,17 @@ public class Sample extends Activity {
         	 music_column_index = musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE);
         	 id = musiccursor.getString(music_column_index);
         	 music_column_index = musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST);
-        	 id += " - " + musiccursor.getString(music_column_index);
-        	 tv.setText(id);
+        	 String artist=musiccursor.getString(music_column_index);
+        	 //music_column_index = musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.IMAGE);
+        	 tv.setTextSize(15);
+        	
+        	 
+        	 SpannableStringBuilder stringBuilder = new SpannableStringBuilder(id + "\n"+artist);
+        	 stringBuilder.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, id.length(),
+        	             Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+        	 stringBuilder.setSpan(new ForegroundColorSpan(Color.rgb(135, 206, 250)), id.length() + 1,
+        			 id.length() + artist.length()+1, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+        	 tv.setText(stringBuilder);
         	 return tv;	 
         }
     }
