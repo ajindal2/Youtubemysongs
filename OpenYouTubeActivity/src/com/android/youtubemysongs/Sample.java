@@ -59,6 +59,43 @@ public class Sample extends Activity {
           musiclist.setAdapter(new MusicAdapter(getApplicationContext()));
           musiclist.setOnItemClickListener(musicgridlistener);
     }
+    
+    private String getVideoId(String queryString) {  	
+    try{
+  	  String url="http://gdata.youtube.com/feeds/api/videos?q="+queryString+"&max-results="+MAX_QUERY_SONGS+"&v=2&format=5&alt=jsonc";
+	  URL jsonURL = new URL(url); 
+	  URLConnection jc = jsonURL.openConnection(); 
+	  InputStream is = jc.getInputStream(); 
+	  String jsonTxt = IOUtils.toString( is );
+	  JSONObject jj = new JSONObject(jsonTxt); 
+	  JSONObject jdata = jj.getJSONObject("data");
+	  int totalItems = Math.min(MAX_QUERY_SONGS,jdata.getInt("totalItems"));
+	  JSONArray aitems = null;
+	  if (totalItems > 0)
+		  aitems = jdata.getJSONArray("items");
+	  String lInfoStr = "fail";
+	  int i =0;
+	  String ret = null;
+	  while(lInfoStr.contains("fail")&&i<totalItems){ 
+		  JSONObject item0 = aitems.getJSONObject(i);
+		  ret = item0.getString("id");   
+		  HttpClient lClient = new DefaultHttpClient();
+		  HttpGet lGetMethod = new HttpGet(YouTubemysongs.YOUTUBE_VIDEO_INFORMATION_URL + ret);
+		  HttpResponse lResp = null;
+		  lResp = lClient.execute(lGetMethod);	
+		  ByteArrayOutputStream lBOS = new ByteArrayOutputStream();	
+		  lResp.getEntity().writeTo(lBOS);
+		  lInfoStr = new String(lBOS.toString("UTF-8"));
+		  i++;
+	  }
+	  if (i==totalItems)
+		  return null;
+	  else
+		  return ret;
+    } catch (Exception e) {
+    	return null;
+    }
+    }
 
     private OnItemClickListener musicgridlistener = new OnItemClickListener() {
           public void onItemClick(AdapterView parent, View v, int position,long id) {
@@ -74,42 +111,21 @@ public class Sample extends Activity {
                   String title = musiccursor.getString(music_column_index);
                   String artist = musiccursor.getString(col1);
                   String album = musiccursor.getString(col2);  
+                  String queryString = title;
                   
-                  if(!artist.contains("<unknown>"))title=(title+" "+artist).replace(" ", "%20");
-                  else if(!album.contains("<unknown>")) title=(title+" "+album).replace(" ", "%20");
-                  else title=(title).replace(" ", "%20");
+                  if(!artist.contains("<unknown>") && artist.length() < 30)queryString=(queryString+" "+artist);
+                  else if(!album.contains("<unknown>") && album.length() < 30) queryString=(queryString+" "+album);
+                  
+                  queryString= queryString.replace(" ", "%20");
+                  
+                  String videoId = getVideoId(queryString);
+                  if (videoId == null)
+                	  videoId = getVideoId(title.replace(" ", "%20"));
                   		  	
-        		  String url="http://gdata.youtube.com/feeds/api/videos?q="+title+"&max-results="+MAX_QUERY_SONGS+"&v=2&format=5&alt=jsonc";
-
-        		  URL jsonURL = new URL(url); 
-        		  URLConnection jc = jsonURL.openConnection(); 
-        		  InputStream is = jc.getInputStream(); 
-        		  String jsonTxt = IOUtils.toString( is );
-        		  JSONObject jj = new JSONObject(jsonTxt); 
-        		  JSONObject jdata = jj.getJSONObject("data");
-        		  int totalItems = Math.min(MAX_QUERY_SONGS,jdata.getInt("totalItems"));
-        		  
-        		  JSONArray aitems = null;
-        		  
-        		  if (totalItems > 0)
-        			  aitems = jdata.getJSONArray("items");
-        		  
-        		  while(lInfoStr.contains("fail")&&i<totalItems){ 
-	        		  JSONObject item0 = aitems.getJSONObject(i);
-	        		  id0 = item0.getString("id");   
-	        		  HttpClient lClient = new DefaultHttpClient();
-	      			  HttpGet lGetMethod = new HttpGet(YouTubemysongs.YOUTUBE_VIDEO_INFORMATION_URL + id0);
-	      			  HttpResponse lResp = null;
-	      			  lResp = lClient.execute(lGetMethod);	
-	      			  ByteArrayOutputStream lBOS = new ByteArrayOutputStream();	
-	      			  lResp.getEntity().writeTo(lBOS);
-	      			  lInfoStr = new String(lBOS.toString("UTF-8"));
-	      			  i++;
-        		  }
-        		  if(i>=totalItems){
+        		  if(videoId == null){
         		      Toast.makeText(getApplicationContext(), "Sorry! No video found :(", Toast.LENGTH_SHORT).show();
         		  } else{
-    	              Intent lVideoIntent = new Intent(null, Uri.parse("ytv://"+id0), Sample.this, YouTubemysongs.class);
+    	              Intent lVideoIntent = new Intent(null, Uri.parse("ytv://"+videoId), Sample.this, YouTubemysongs.class);
     	              startActivity(lVideoIntent);
             	  }
         	  } catch (Exception e) {e.printStackTrace();}
