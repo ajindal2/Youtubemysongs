@@ -1,19 +1,17 @@
 package com.android.youtubemysongs;
 
+<<<<<<< HEAD
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+=======
+>>>>>>> e344ecdfc4cf61a0cfe9d45854665d16cb59e0df
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLEncoder;
-import java.util.List;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -43,8 +41,7 @@ public class Sample extends Activity {
     Cursor musiccursor;
     int music_column_index;
     int count;
-    MediaPlayer mMediaPlayer;
-
+    
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -56,13 +53,12 @@ public class Sample extends Activity {
     @SuppressWarnings("deprecation")
 	private void init_phone_music_grid() {
           System.gc();
-          String[] proj = { MediaStore.Audio.Media._ID,MediaStore.Audio.Media.DATA,MediaStore.Audio.Media.DISPLAY_NAME,MediaStore.Video.Media.SIZE,MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.TITLE,MediaStore.Audio.Media.ALBUM };
+          String[] proj = { MediaStore.Audio.Media._ID,MediaStore.Audio.Media.DISPLAY_NAME,MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.TITLE,MediaStore.Audio.Media.ALBUM };
           musiccursor = managedQuery(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,proj, null, null, null);
           count = musiccursor.getCount();
           musiclist = (ListView) findViewById(R.id.PhoneMusicList);
           musiclist.setAdapter(new MusicAdapter(getApplicationContext()));
           musiclist.setOnItemClickListener(musicgridlistener);
-          mMediaPlayer = new MediaPlayer();
     }
 
     private OnItemClickListener musicgridlistener = new OnItemClickListener() {
@@ -138,21 +134,22 @@ public class Sample extends Activity {
           }
 
          public View getView(int position, View convertView, ViewGroup parent) {
-                System.gc();
-                TextView tv = new TextView(mContext.getApplicationContext());
-                String id = null;
-                if (convertView == null) {
-                      music_column_index = musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME);
-                      musiccursor.moveToPosition(position);
-                      id = musiccursor.getString(music_column_index);
-                      music_column_index = musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE);
-                      musiccursor.moveToPosition(position);
-                      id += " Size(KB):" + musiccursor.getString(music_column_index);
-                      tv.setText(id);
-                } else
-                      tv = (TextView) convertView;
-                return tv;
-          }
+        	 System.gc();
+        	 String id = null;
+        	 TextView tv;
+        	 if (convertView == null) {
+        		 tv = new TextView(mContext.getApplicationContext());
+        	 } else{
+        		 tv = (TextView) convertView;
+        	 }
+        	 musiccursor.moveToPosition(position);
+        	 music_column_index = musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE);
+        	 id = musiccursor.getString(music_column_index);
+        	 music_column_index = musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST);
+        	 id += " - " + musiccursor.getString(music_column_index);
+        	 tv.setText(id);
+        	 return tv;	 
+        }
     }
 }
 
