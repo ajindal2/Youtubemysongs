@@ -41,28 +41,28 @@ public class YouTubemysongs extends Activity {
 	protected TextView    mProgressMessage;
 	protected VideoView   mVideoView;
 	
-	public final static String MSG_INIT = "com.keyes.video.msg.init";
+	public final static String MSG_INIT = "com.test.video.msg.init";
 	protected String      mMsgInit       = "Initializing";
 	
-	public final static String MSG_DETECT = "com.keyes.video.msg.detect";
+	public final static String MSG_DETECT = "com.test.video.msg.detect";
 	protected String      mMsgDetect     = "Detecting Bandwidth";
 
-	public final static String MSG_PLAYLIST = "com.keyes.video.msg.playlist";
+	public final static String MSG_PLAYLIST = "com.test.video.msg.playlist";
 	protected String      mMsgPlaylist   = "Determining Latest Video in YouTube Playlist";
 
-	public final static String MSG_TOKEN = "com.keyes.video.msg.token";
+	public final static String MSG_TOKEN = "com.test.video.msg.token";
 	protected String      mMsgToken      = "Retrieving YouTube Video Token";
 	
-	public final static String MSG_LO_BAND = "com.keyes.video.msg.loband";
+	public final static String MSG_LO_BAND = "com.test.video.msg.loband";
 	protected String      mMsgLowBand    = "Buffering Low-bandwidth Video";
 	
-	public final static String MSG_HI_BAND = "com.keyes.video.msg.hiband";
+	public final static String MSG_HI_BAND = "com.test.video.msg.hiband";
 	protected String      mMsgHiBand     = "Buffering High-bandwidth Video";
 	
-	public final static String MSG_ERROR_TITLE = "com.keyes.video.msg.error.title";
+	public final static String MSG_ERROR_TITLE = "com.test.video.msg.error.title";
 	protected String      mMsgErrorTitle = "Communications Error";
 	
-	public final static String MSG_ERROR_MSG = "com.keyes.video.msg.error.msg";
+	public final static String MSG_ERROR_MSG = "com.test.video.msg.error.msg";
 	protected String      mMsgError      = "An error occurred during the retrieval of the video.  This could be due to network issues or YouTube protocols.  Please try again later.";
 	
 	/** Background task on which all of the interaction with YouTube is done */
