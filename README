@@ -2,11 +2,11 @@ YouTube MySongs
 
 YouTube MySongs is an Android application that allows you to click on a song on the phone and it automatically plays the video from YouTube. It reads the meta data of the song and uses that to generate a search query on YouTube.
 This is beta version. Coming soon: -- playlist support, search feature, and many more.
-Download the app directly here from Google play store.
+Download the app directly from Google play store at https://play.google.com/store/apps/details?id=com.aanchal.youtubemysongs&feature=search_result#?t=W251bGwsMSwyLDEsImNvbS5hYW5jaGFsLnlvdXR1YmVteXNvbmdzIl0..
 
 Bug tracker
 
-Have a bug or a feature request? Please feel free to email me.
+Have a bug (report) or a feature request? Please feel free to email me.
 
 Author
 
@@ -14,7 +14,7 @@ Aanchal Jindal (aanchaljindal@gmail.com)
 
 Acknowledgements
 
-The YouTube video player code is taken based on https://code.google.com/p/android-youtube-player/.
+The YouTube video player code is based on https://code.google.com/p/android-youtube-player/.
 
 Copyright and license
 
