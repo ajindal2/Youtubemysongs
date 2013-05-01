@@ -1,0 +1,29 @@
+YouTube MySongs
+
+YouTube MySongs is an Android application that allows you to click on a song on your phone and it auto-magically plays the video from YouTube. You no longer need to go to YouTube and search for songs.
+This is beta version. Coming soon: -- playlist support, search feature, and many more.
+
+Quickstart
+
+Two quick start options are available:
+https://github.com/ajindal2/Youtubemysongs 
+Download directly here from Google play store.
+
+Bug tracker
+
+Have a bug or a feature request? Please open a new issue. Before opening any issue, please search for existing issues.
+
+Author
+
+Aanchal Jindal (aanchaljindal@gmail.com)
+
+Acknowledgements
+
+I have used the Android activity to play videos that are hosted on YouTube from here. The original code was created by KeyesLabs (www.keyeslabs.com) as part of the Screebl project.
+
+Copyright and license
+
+Copyright [2013] [Aanchal Jindal]
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this work except in compliance with the License. You may obtain a copy of the License in the LICENSE file, or at:
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
