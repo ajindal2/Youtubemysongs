@@ -1,17 +1,23 @@
 package com.aanchal.youtubemysongs;
 
+import com.aanchal.youtubemysongs.Song;
+import com.aanchal.youtubemysongs.DeveloperKey;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.Spannable;
@@ -41,22 +47,61 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.aanchal.youtubemysongs.R;
+import com.google.android.youtube.player.YouTubeStandalonePlayer;
 
 public class MainActivity extends Activity {
 
 	static final int MAX_QUERY_SONGS = 5;
+	private static final String YOUTUBE_VIDEO_INFORMATION_URL = "http://www.youtube.com/get_video_info?&video_id=";
 
 	ListView musiclist;
     Cursor musiccursor;
+    Song querySong;
     int music_column_index;
     int count;
+    private ConnectivityManager cm;
+    Activity myself;
+    
+    class Process extends AsyncTask<Object, Void, String> {
+		
+		 private ProgressDialog progressDialog; 
+		 
+		 @Override
+	        protected void onPreExecute()
+	        {
+	            super.onPreExecute();   
+	            progressDialog = ProgressDialog.show(MainActivity.this, null, "Automagic search in progress...", true, false); 
+	        }
+
+	        @Override
+	        protected String doInBackground(Object... param) {
+	        	return getVideoIdForSong(querySong);
+        	 }
+
+	        @Override
+	        protected void onPostExecute(String result)
+	        {
+	            super.onPostExecute(result);	            
+	            progressDialog.dismiss();
+	        	if (result == null) 
+		        	   Toast.makeText(myself, "Sorry! No video found :(", Toast.LENGTH_SHORT).show();
+	        	else {
+             		Intent intent = YouTubeStandalonePlayer.createVideoIntent(
+             	         myself , DeveloperKey.DEVELOPER_KEY, result,0, true, false);
+             		startActivity(intent);
+		        }    
+	        }
+	}
 
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
           super.onCreate(savedInstanceState);
           setContentView(R.layout.mainactivity);
+          cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+          myself = this;
           init_phone_music_grid();
+          
     }
 
     @SuppressWarnings("deprecation")
@@ -69,42 +114,66 @@ public class MainActivity extends Activity {
           musiclist.setAdapter(new MusicAdapter(getApplicationContext()));
           musiclist.setOnItemClickListener(musicgridlistener);
     }
-
-    private String getVideoId(String queryString) {
-    try{
-  	  String url="http://gdata.youtube.com/feeds/api/videos?q="+queryString+"&max-results="+MAX_QUERY_SONGS+"&v=2&format=5&alt=jsonc";
-	  URL jsonURL = new URL(url);
-	  URLConnection jc = jsonURL.openConnection();
-	  InputStream is = jc.getInputStream();
-	  String jsonTxt = IOUtils.toString( is );
-	  JSONObject jj = new JSONObject(jsonTxt);
-	  JSONObject jdata = jj.getJSONObject("data");
-	  int totalItems = Math.min(MAX_QUERY_SONGS,jdata.getInt("totalItems"));
-	  JSONArray aitems = null;
-	  if (totalItems > 0)
-		  aitems = jdata.getJSONArray("items");
-	  String lInfoStr = "fail";
-	  int i =0;
-	  String ret = null;
-	  while(lInfoStr.contains("fail")&&i<totalItems){
-		  JSONObject item0 = aitems.getJSONObject(i);
-		  ret = item0.getString("id");
-		  HttpClient lClient = new DefaultHttpClient();
-		  HttpGet lGetMethod = new HttpGet(YouTubemysongs.YOUTUBE_VIDEO_INFORMATION_URL + ret);
-		  HttpResponse lResp = null;
-		  lResp = lClient.execute(lGetMethod);
-		  ByteArrayOutputStream lBOS = new ByteArrayOutputStream();
-		  lResp.getEntity().writeTo(lBOS);
-		  lInfoStr = new String(lBOS.toString("UTF-8"));
-		  i++;
-	  }
-	  if (i==totalItems)
-		  return null;
-	  else return ret;
-    } catch (Exception e) {
-    	return null;
-    }
-    }
+    
+	// returns query results in JSON form
+	private static JSONArray getResults(String query) {
+		if (query.contains("<unknown>") || query.contains("www") || query.contains("[") || query.contains("("))
+			return null;
+		try {
+		// TODO: Get short and medium duration only, exclude long videos
+		String url="http://gdata.youtube.com/feeds/api/videos?q="+query+"&max-results="+MAX_QUERY_SONGS+"&v=2&format=5&alt=jsonc";
+		URL jsonURL = new URL(url);
+		URLConnection jc = jsonURL.openConnection();
+		InputStream is = jc.getInputStream();
+		String jsonTxt = IOUtils.toString( is );
+		JSONObject jj = new JSONObject(jsonTxt);
+		JSONObject jdata = jj.getJSONObject("data");
+		int totalItems = Math.min(MAX_QUERY_SONGS,jdata.getInt("totalItems"));
+		JSONArray aitems = null;
+		if (totalItems > 0)
+			aitems = jdata.getJSONArray("items");
+		return aitems;
+		} catch (Exception e) {
+			return null;
+		}
+	}
+	
+	// given a song, retrieve the youtube id, returns null if no playable video is found
+	private static String getVideoIdForSong(Song song) {
+		JSONArray[] results = new JSONArray[3];
+		results[0] = getResults(song.getAlbumQueryString());
+		results[1] = getResults(song.getArtistQueryString());
+		results[2] = getResults(song.getArtistAlbumQueryString());
+		int[] indexes = new int[3];
+		indexes[0] = indexes[1] = indexes[2] = 0;
+		while(true) {
+			Boolean exhausted = true;
+			for(int i = 0; i < 3; ++i) 
+				if (results[i] != null && indexes[i] < results[i].length()) {
+					try {
+					  JSONObject item0 = results[i].getJSONObject(indexes[i]);
+					  indexes[i]++;
+					  String ret = item0.getString("id");
+					  HttpClient lClient = new DefaultHttpClient();
+					  HttpGet lGetMethod = new HttpGet(YOUTUBE_VIDEO_INFORMATION_URL + ret);
+					  HttpResponse lResp = null;
+					  lResp = lClient.execute(lGetMethod);
+					  ByteArrayOutputStream lBOS = new ByteArrayOutputStream();
+					  lResp.getEntity().writeTo(lBOS);
+					  String lInfoStr = new String(lBOS.toString("UTF-8"));
+					  if (!lInfoStr.contains("fail"))
+						  return ret;
+					  exhausted = false;
+					} catch (Exception e) {
+						// do nothing, continue
+					}
+					  
+				}
+			if (exhausted)
+				break;
+		}
+		return null;
+	}
 
     private OnItemClickListener musicgridlistener = new OnItemClickListener() {
           public void onItemClick(AdapterView parent, View v, int position,long id) {
@@ -119,23 +188,12 @@ public class MainActivity extends Activity {
                     String title = musiccursor.getString(music_column_index);
                     String artist = musiccursor.getString(col1);
                     String album = musiccursor.getString(col2);
-
-                    String queryString = title;
-
-                    if(!artist.contains("<unknown>") && artist.length() < 30)queryString=(queryString+" "+artist);
-                    else if(!album.contains("<unknown>") && album.length() < 30) queryString=(queryString+" "+album);
-
-                    queryString= queryString.replace(" ", "%20");
-                    String videoId = getVideoId(queryString);
-                    if (videoId == null)
-                      videoId = getVideoId(title.replace(" ", "%20"));
-
-                    if(videoId == null){
-                      Toast.makeText(getApplicationContext(), "Sorry! No video found :(", Toast.LENGTH_SHORT).show();
-                    } else{
-                      Intent lVideoIntent = new Intent(null, Uri.parse("ytv://"+videoId), MainActivity.this, YouTubemysongs.class);
-                      startActivity(lVideoIntent);
-                    }
+                    querySong = new Song(title, album, artist);
+                  	if (cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isAvailable() && cm.getActiveNetworkInfo().isConnected())
+                  		new Process().execute(null,null,null); 
+                  	else 
+                  		Toast.makeText(getApplicationContext(), "No internet connection", Toast.LENGTH_LONG).show();
+             
                   } catch (Exception e) {e.printStackTrace();}
           }
     };
