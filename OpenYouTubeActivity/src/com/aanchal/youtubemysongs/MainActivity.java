@@ -14,6 +14,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
@@ -47,6 +48,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.aanchal.youtubemysongs.R;
+import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubeStandalonePlayer;
 
 
@@ -99,6 +101,11 @@ public class MainActivity extends Activity {
 	        protected String doInBackground(Object... param) {
 	        	return getVideoIdForSong(querySong);
         	 }
+	        
+	        private boolean canResolveIntent(Intent intent) {
+	            List<ResolveInfo> resolveInfo = getPackageManager().queryIntentActivities(intent, 0);
+	            return resolveInfo != null && !resolveInfo.isEmpty();
+	        }
 
 	        @Override
 	        protected void onPostExecute(String result)
@@ -111,7 +118,10 @@ public class MainActivity extends Activity {
 	        	else {
              		Intent intent = YouTubeStandalonePlayer.createVideoIntent(
              	         myself , DeveloperKey.DEVELOPER_KEY, result,0, true, false);
-             		startActivity(intent);
+             		if (intent == null || !canResolveIntent(intent))
+             			YouTubeInitializationResult.SERVICE_MISSING.getErrorDialog(myself, 2).show();
+             		else
+             			startActivity(intent);
 		        }    
 	        }
 	}
