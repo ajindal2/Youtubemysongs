@@ -49,6 +49,7 @@ import org.json.JSONObject;
 import com.aanchal.youtubemysongs.R;
 import com.google.android.youtube.player.YouTubeStandalonePlayer;
 
+
 public class MainActivity extends Activity {
 
 	static final int MAX_QUERY_SONGS = 5;
@@ -64,6 +65,8 @@ public class MainActivity extends Activity {
     Activity myself;
     EditText inputSearch;
     MusicAdapter adapter;
+    private ProgressDialog progressDialog; 
+	
     
     private TextWatcher searchTextWatcher = new TextWatcher() {
         @Override
@@ -84,7 +87,6 @@ public class MainActivity extends Activity {
     
     class Process extends AsyncTask<Object, Void, String> {
 		
-		 private ProgressDialog progressDialog; 
 		 
 		 @Override
 	        protected void onPreExecute()
@@ -101,8 +103,9 @@ public class MainActivity extends Activity {
 	        @Override
 	        protected void onPostExecute(String result)
 	        {
+	        	if (progressDialog != null)
+	        		progressDialog.dismiss();
 	            super.onPostExecute(result);	            
-	            progressDialog.dismiss();
 	        	if (result == null) 
 		        	   Toast.makeText(myself, "Sorry! No video found :(", Toast.LENGTH_SHORT).show();
 	        	else {
@@ -122,9 +125,18 @@ public class MainActivity extends Activity {
           myself = this;
           inputSearch = (EditText) findViewById(R.id.inputSearch);
           inputSearch.addTextChangedListener(searchTextWatcher);
-          init_phone_music_grid();
-    }
+          init_phone_music_grid();    
+      }
+    
+    @Override
+    public void onPause() {
+        super.onPause();
 
+        if(progressDialog != null)
+            progressDialog.dismiss();
+        progressDialog = null;
+    }
+    
     @SuppressWarnings("deprecation")
 	private void init_phone_music_grid() {
           System.gc();
@@ -149,7 +161,7 @@ public class MainActivity extends Activity {
     
 	// returns query results in JSON form
 	private static JSONArray getResults(String query) {
-		if (query.contains("<unknown>") || query.contains("www") || query.contains("[") || query.contains("("))
+		if (query.contains("<unknown>"))
 			return null;
 		try {
 		// TODO: Get short and medium duration only, exclude long videos
@@ -175,7 +187,10 @@ public class MainActivity extends Activity {
 		JSONArray[] results = new JSONArray[3];
 		results[0] = getResults(song.getAlbumQueryString());
 		results[1] = getResults(song.getArtistQueryString());
-		results[2] = getResults(song.getArtistAlbumQueryString());
+		if (results[0] == null && results[1] == null)
+			results[2] = getResults(song.getTitleQueryString());
+		else
+			results[2] = getResults(song.getArtistAlbumQueryString());
 		int[] indexes = new int[3];
 		indexes[0] = indexes[1] = indexes[2] = 0;
 		while(true) {

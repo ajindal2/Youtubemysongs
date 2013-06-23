@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="com.aanchal.youtubemysongs"
-      android:versionCode="2"
-      android:versionName="0.2">
+      android:versionCode="3"
+      android:versionName="1.0">
       
     <!-- =============================================================== -->
     <!-- The OpenYouTubeActivity requires these permissions              --> 
@@ -25,19 +25,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
-        <!-- =============================================================== -->
-        <!-- This is what you'll need to include in your manifest to declare --> 
-        <!-- the OpenYouTubeActivity in your project                         -->
-        <!-- =============================================================== -->
-        <activity  
-                android:name="com.aanchal.youtubemysongs.YouTubemysongs"  
-                android:screenOrientation="landscape"
-                android:configChanges="orientation"
-                android:theme="@android:style/Theme.Black"
-                android:label="@string/app_name">  
-        </activity> 
-
+     	<activity android:name="com.google.ads.AdActivity"
+              android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"/>
     </application>
 
 </manifest> 

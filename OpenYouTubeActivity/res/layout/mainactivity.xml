@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:ads="http://schemas.android.com/apk/lib/com.google.ads"
+      android:id="@+id/mainLayout"
       android:orientation="vertical" android:layout_width="fill_parent"
       android:layout_height="fill_parent">
       
@@ -14,5 +16,12 @@
             android:id="@+id/PhoneMusicList"
             android:dividerHeight="4sp"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"/>
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+      <com.google.ads.AdView android:id="@+id/adView"
+                         android:layout_width="fill_parent"
+                         android:layout_height="wrap_content"
+                         ads:adUnitId="a151c6499f7c3d0"
+                         ads:adSize="BANNER"
+                         ads:loadAdOnCreate="true"/>
 </LinearLayout>
