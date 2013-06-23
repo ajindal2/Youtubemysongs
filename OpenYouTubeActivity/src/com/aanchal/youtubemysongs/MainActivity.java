@@ -4,35 +4,35 @@ import com.aanchal.youtubemysongs.Song;
 import com.aanchal.youtubemysongs.DeveloperKey;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
+
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
-import android.text.style.AbsoluteSizeSpan;
+import android.text.TextWatcher;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
-import android.text.style.StyleSpan;
-import android.text.style.TextAppearanceSpan;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.ImageView;
+import android.widget.EditText;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -57,10 +57,30 @@ public class MainActivity extends Activity {
 	ListView musiclist;
     Cursor musiccursor;
     Song querySong;
-    int music_column_index;
+    List<Song> allSongs;
+    List<Song> currentSongs;
     int count;
     private ConnectivityManager cm;
     Activity myself;
+    EditText inputSearch;
+    MusicAdapter adapter;
+    
+    private TextWatcher searchTextWatcher = new TextWatcher() {
+        @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // ignore
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // ignore
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                adapter.getFilter().filter(s.toString());
+            }
+        };
     
     class Process extends AsyncTask<Object, Void, String> {
 		
@@ -100,8 +120,9 @@ public class MainActivity extends Activity {
           setContentView(R.layout.mainactivity);
           cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
           myself = this;
+          inputSearch = (EditText) findViewById(R.id.inputSearch);
+          inputSearch.addTextChangedListener(searchTextWatcher);
           init_phone_music_grid();
-          
     }
 
     @SuppressWarnings("deprecation")
@@ -110,8 +131,19 @@ public class MainActivity extends Activity {
           String[] proj = { MediaStore.Audio.Media._ID,MediaStore.Audio.Media.DISPLAY_NAME,MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.TITLE,MediaStore.Audio.Media.ALBUM };
           musiccursor = managedQuery(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,proj, null, null, null);
           count = musiccursor.getCount();
+          int titleCol = musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE);
+          int artistCol = musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST);
+          int albumCol = musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM);
+          allSongs = new ArrayList<Song>();
+          currentSongs = new ArrayList<Song>();
+          musiccursor.moveToFirst();
+          for(int i = 0; i < count; ++i, musiccursor.moveToNext()) { 
+        	  allSongs.add(new Song(musiccursor.getString(titleCol), musiccursor.getString(albumCol), musiccursor.getString(artistCol)));
+           	  currentSongs.add(new Song(musiccursor.getString(titleCol), musiccursor.getString(albumCol), musiccursor.getString(artistCol)));
+          }
           musiclist = (ListView) findViewById(R.id.PhoneMusicList);
-          musiclist.setAdapter(new MusicAdapter(getApplicationContext()));
+          adapter = new MusicAdapter(getApplicationContext());
+          musiclist.setAdapter(adapter);
           musiclist.setOnItemClickListener(musicgridlistener);
     }
     
@@ -180,15 +212,7 @@ public class MainActivity extends Activity {
         	  try {
                     //Upon clicking on a song name this will retrieve MAX_QUERY_SONGS number of songs from youtube and play the top result.
                     System.gc();
-                    String lInfoStr = "fail";
-                    music_column_index = musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE);
-                    int col1=musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST);
-                    int col2=musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM);
-                    musiccursor.moveToPosition(position);
-                    String title = musiccursor.getString(music_column_index);
-                    String artist = musiccursor.getString(col1);
-                    String album = musiccursor.getString(col2);
-                    querySong = new Song(title, album, artist);
+                    querySong = currentSongs.get(position);
                   	if (cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isAvailable() && cm.getActiveNetworkInfo().isConnected())
                   		new Process().execute(null,null,null); 
                   	else 
@@ -198,7 +222,7 @@ public class MainActivity extends Activity {
           }
     };
 
-    public class MusicAdapter extends BaseAdapter {
+    public class MusicAdapter extends BaseAdapter implements Filterable {
       private Context mContext;
 
       public MusicAdapter(Context c) {
@@ -206,7 +230,7 @@ public class MainActivity extends Activity {
       }
 
       public int getCount() {
-        return count;
+        return currentSongs.size();
       }
 
       public Object getItem(int position) {
@@ -219,26 +243,65 @@ public class MainActivity extends Activity {
 
       public View getView(int position, View convertView, ViewGroup parent) {
         System.gc();
-        String id = null;
         TextView tv;
         if (convertView == null) {
           tv = new TextView(mContext.getApplicationContext());
         } else{
           tv = (TextView) convertView;
         }
-        musiccursor.moveToPosition(position);
-        music_column_index = musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE);
-        id = musiccursor.getString(music_column_index);
-        music_column_index = musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST);
-        String artist=musiccursor.getString(music_column_index);
         tv.setTextSize(12);
-
-        SpannableStringBuilder stringBuilder = new SpannableStringBuilder(id + "\n"+artist);
-        stringBuilder.setSpan(new RelativeSizeSpan(1.5f), 0, id.length(),Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-        stringBuilder.setSpan(new ForegroundColorSpan(Color.rgb(135, 206, 250)), id.length() + 1,id.length() + artist.length()+1, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+        Song song = currentSongs.get(position);
+        int titleLength = song.title.length();
+        int artistLength = song.artist.length();
+        SpannableStringBuilder stringBuilder = new SpannableStringBuilder(song.title + "\n"+song.artist);
+        stringBuilder.setSpan(new RelativeSizeSpan(1.5f), 0, titleLength,Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+        stringBuilder.setSpan(new ForegroundColorSpan(Color.rgb(135, 206, 250)), titleLength + 1, titleLength + artistLength +1, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
         tv.setText(stringBuilder);
         return tv;
       }
+
+	@Override
+	public Filter getFilter() {
+		return new Filter() {
+			  @SuppressWarnings("unchecked")
+	            @Override
+	            protected void publishResults(CharSequence constraint, FilterResults results) {
+				  // Now we have to inform the adapter about the new list filtered
+				    if (results.count == 0)
+				        notifyDataSetInvalidated();
+				    else {
+				        currentSongs = (List<Song>) results.values;
+				        notifyDataSetChanged();
+				    }
+				}
+
+	            @Override
+	            protected FilterResults performFiltering(CharSequence constraint) {
+	            	 FilterResults results = new FilterResults();
+	            	    // We implement here the filter logic
+	            	    if (constraint == null || constraint.length() == 0) {
+	            	        // No filter implemented we return all the list
+	            	        results.values = allSongs;
+	            	        results.count = allSongs.size();
+	            	    }
+	            	    else {
+	            	        // We perform filtering operation
+	            	        List<Song> filteredSongs = new ArrayList<Song>();
+	            	        String searchString = constraint.toString().toLowerCase();
+	            	        for (Song song : allSongs) {
+	            	        	if (song.title.toLowerCase().contains(searchString) ||
+	            	        		song.artist.toLowerCase().contains(searchString))
+	            	                filteredSongs.add(song);
+	            	        }
+	            	         
+	            	        results.values = filteredSongs;
+	            	        results.count = filteredSongs.size();
+	            	 
+	            	    }
+	            	    return results;
+	            }
+		};
+	}
     }
 }
 
