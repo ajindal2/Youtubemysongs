@@ -152,6 +152,7 @@ public class MainActivity extends Activity {
           System.gc();
           String[] proj = { MediaStore.Audio.Media._ID,MediaStore.Audio.Media.DISPLAY_NAME,MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.TITLE,MediaStore.Audio.Media.ALBUM };
           musiccursor = managedQuery(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,proj, null, null, null);
+          // TODO: Check if musiccursor is null
           count = musiccursor.getCount();
           int titleCol = musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE);
           int artistCol = musiccursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST);
