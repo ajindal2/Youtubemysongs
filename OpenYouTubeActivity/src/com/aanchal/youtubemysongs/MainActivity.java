@@ -71,17 +71,17 @@ public class MainActivity extends Activity {
 	
     
     private TextWatcher searchTextWatcher = new TextWatcher() {
-        @Override
+       // @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 // ignore
             }
 
-            @Override
+            //@Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 // ignore
             }
 
-            @Override
+           // @Override
             public void afterTextChanged(Editable s) {
                 adapter.getFilter().filter(s.toString());
             }
@@ -286,7 +286,7 @@ public class MainActivity extends Activity {
         return tv;
       }
 
-	@Override
+	//@Override
 	public Filter getFilter() {
 		return new Filter() {
 			  @SuppressWarnings("unchecked")
