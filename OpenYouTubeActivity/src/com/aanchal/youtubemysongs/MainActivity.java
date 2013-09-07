@@ -180,7 +180,7 @@ public class MainActivity extends Activity {
 			return null;
 		try {
 		// TODO: Get short and medium duration only, exclude long videos
-		String url="http://gdata.youtube.com/feeds/api/videos?q="+query+"&max-results="+MAX_QUERY_SONGS+"&v=2&format=5&alt=jsonc";
+		String url="http://gdata.youtube.com/feeds/api/videos?q="+query+"&max-results="+MAX_QUERY_SONGS+"&v=2&alt=jsonc";
 		URL jsonURL = new URL(url);
 		URLConnection jc = jsonURL.openConnection();
 		InputStream is = jc.getInputStream();
