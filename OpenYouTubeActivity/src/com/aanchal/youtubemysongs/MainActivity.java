@@ -151,6 +151,7 @@ public class MainActivity extends Activity {
 	private void init_phone_music_grid() {
           System.gc();
           String[] proj = { MediaStore.Audio.Media._ID,MediaStore.Audio.Media.DISPLAY_NAME,MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.TITLE,MediaStore.Audio.Media.ALBUM };
+          try {
           musiccursor = managedQuery(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,proj, null, null, null);
           // TODO: Check if musiccursor is null
           count = musiccursor.getCount();
@@ -168,6 +169,9 @@ public class MainActivity extends Activity {
           adapter = new MusicAdapter(getApplicationContext());
           musiclist.setAdapter(adapter);
           musiclist.setOnItemClickListener(musicgridlistener);
+          } catch (NullPointerException e) {
+        	  Toast.makeText(getApplicationContext(), "No songs found on phone", Toast.LENGTH_LONG).show();
+          }
     }
     
 	// returns query results in JSON form
