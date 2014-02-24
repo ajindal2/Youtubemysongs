@@ -41,6 +41,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.aanchal.youtubemysongs.R;
+import com.google.ads.*;
 
 public class MainActivity extends Activity {
 
