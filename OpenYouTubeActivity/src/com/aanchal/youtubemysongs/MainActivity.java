@@ -2,31 +2,39 @@ package com.aanchal.youtubemysongs;
 
 import com.aanchal.youtubemysongs.Song;
 import com.aanchal.youtubemysongs.DeveloperKey;
+import com.aanchal.youtubemysongs.SongLogger;
+import com.aanchal.youtubemysongs.AppRater;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.provider.Settings.Secure;
 import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.TextWatcher;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -51,10 +59,12 @@ import com.aanchal.youtubemysongs.R;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubeStandalonePlayer;
 
+import com.google.ads.*;
 
 public class MainActivity extends Activity {
 
 	static final int MAX_QUERY_SONGS = 5;
+	private static final int SONG_CANDIDATES = 1;
 	private static final String YOUTUBE_VIDEO_INFORMATION_URL = "http://www.youtube.com/get_video_info?&video_id=";
 
 	ListView musiclist;
@@ -63,11 +73,17 @@ public class MainActivity extends Activity {
     List<Song> allSongs;
     List<Song> currentSongs;
     int count;
+    static int selectedIndex;
     private ConnectivityManager cm;
     Activity myself;
     EditText inputSearch;
     MusicAdapter adapter;
     private ProgressDialog progressDialog; 
+    SongLogger logger;
+    static String duration;
+    long startTime = -1;
+    static Random randomGenerator = new Random();
+    static AppRater appRate = new AppRater();
 	
     
     private TextWatcher searchTextWatcher = new TextWatcher() {
@@ -86,6 +102,13 @@ public class MainActivity extends Activity {
                 adapter.getFilter().filter(s.toString());
             }
         };
+        
+        private class LoggerTask extends AsyncTask<Object, Void, Long> {
+        	protected Long doInBackground(Object... param) {
+	        	logger.resetAndSend(MainActivity.this);
+	        	return (long) 1;
+        	 }
+        }
     
     class Process extends AsyncTask<Object, Void, String> {
 		
@@ -106,6 +129,14 @@ public class MainActivity extends Activity {
 	            List<ResolveInfo> resolveInfo = getPackageManager().queryIntentActivities(intent, 0);
 	            return resolveInfo != null && !resolveInfo.isEmpty();
 	        }
+	        
+	        private int getDuration() {
+	        	try {
+	        		return Integer.parseInt(duration);
+	        	} catch (Exception e) {
+	        		return -1;
+	        	}
+	        }
 
 	        @Override
 	        protected void onPostExecute(String result)
@@ -120,15 +151,40 @@ public class MainActivity extends Activity {
              	         myself , DeveloperKey.DEVELOPER_KEY, result,0, true, false);
              		if (intent == null || !canResolveIntent(intent))
              			YouTubeInitializationResult.SERVICE_MISSING.getErrorDialog(myself, 2).show();
-             		else
+             		else {
+             			startTime = System.currentTimeMillis();
+             			logger.videoStarted(result, querySong, getDuration(), selectedIndex);
              			startActivity(intent);
+             		}
 		        }    
 	        }
 	}
+    
+    public static String sha256(String base) {
+        try{
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(base.getBytes("UTF-8"));
+            StringBuffer hexString = new StringBuffer();
+
+            for (int i = 0; i < hash.length; i++) {
+                String hex = Integer.toHexString(0xff & hash[i]);
+                if(hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+
+            return hexString.toString();
+        } catch(Exception ex){
+           throw new RuntimeException(ex);
+        }
+    }
 
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
+    	logger =new SongLogger(sha256(Secure.getString(this.getContentResolver(),
+	                Secure.ANDROID_ID)));
+	    	
+		
           super.onCreate(savedInstanceState);
           setContentView(R.layout.mainactivity);
           cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -136,15 +192,55 @@ public class MainActivity extends Activity {
           inputSearch = (EditText) findViewById(R.id.inputSearch);
           inputSearch.addTextChangedListener(searchTextWatcher);
           init_phone_music_grid();    
+          startTime = -1;
       }
     
     @Override
     public void onPause() {
         super.onPause();
+        //Log.v("Logging", "Pause Called");
+        
 
         if(progressDialog != null)
             progressDialog.dismiss();
         progressDialog = null;
+    }
+    
+    @Override
+    public void onStart() {
+    	super.onStart();
+    	//Log.v("Logging", "Start Called");
+    }
+    
+    @Override
+    public void onResume() {
+    	super.onResume();
+    	//Log.v("Logging", "Resume Called");
+    	new LoggerTask().execute(null,null,null); 
+    	if (startTime != -1) {
+    		int elapsedTime = (int) ((System.currentTimeMillis() - startTime)/1000);
+    		//Log.v("Logging", "Registering a click with time = " + Integer.toString(elapsedTime));
+    		AppRater.songClicked(this, elapsedTime > 20);  
+    	}
+    	startTime = -1;
+    }
+    
+    @Override
+    public void onStop() {
+    	super.onStop();
+    	//Log.v("Logging", "Stop Called");
+    }
+    
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        //Log.v("Logging","Orientation changed");
+        /*// Checks the orientation of the screen
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+            Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
+        }*/
     }
     
     @SuppressWarnings("deprecation")
@@ -185,6 +281,7 @@ public class MainActivity extends Activity {
 		URLConnection jc = jsonURL.openConnection();
 		InputStream is = jc.getInputStream();
 		String jsonTxt = IOUtils.toString( is );
+		Log.v("temp","Query:" + query + " Returned: " + jsonTxt);
 		JSONObject jj = new JSONObject(jsonTxt);
 		JSONObject jdata = jj.getJSONObject("data");
 		int totalItems = Math.min(MAX_QUERY_SONGS,jdata.getInt("totalItems"));
@@ -208,6 +305,9 @@ public class MainActivity extends Activity {
 			results[2] = getResults(song.getArtistAlbumQueryString());
 		int[] indexes = new int[3];
 		indexes[0] = indexes[1] = indexes[2] = 0;
+		String[] candidates = new String[SONG_CANDIDATES];
+		String[] durations = new String[SONG_CANDIDATES];
+		int counter = 0;
 		while(true) {
 			Boolean exhausted = true;
 			for(int i = 0; i < 3; ++i) 
@@ -216,6 +316,7 @@ public class MainActivity extends Activity {
 					  JSONObject item0 = results[i].getJSONObject(indexes[i]);
 					  indexes[i]++;
 					  String ret = item0.getString("id");
+					  
 					  HttpClient lClient = new DefaultHttpClient();
 					  HttpGet lGetMethod = new HttpGet(YOUTUBE_VIDEO_INFORMATION_URL + ret);
 					  HttpResponse lResp = null;
@@ -223,8 +324,16 @@ public class MainActivity extends Activity {
 					  ByteArrayOutputStream lBOS = new ByteArrayOutputStream();
 					  lResp.getEntity().writeTo(lBOS);
 					  String lInfoStr = new String(lBOS.toString("UTF-8"));
-					  if (!lInfoStr.contains("fail"))
-						  return ret;
+					  if (!lInfoStr.contains("fail")) {
+						  durations[counter] = item0.getString("duration");
+						  candidates[counter] = ret;
+						  ++counter;
+						  if (counter == SONG_CANDIDATES) {
+							    selectedIndex = randomGenerator.nextInt(counter);
+								duration = durations[selectedIndex];
+								return candidates[selectedIndex];
+						  }
+					  }
 					  exhausted = false;
 					} catch (Exception e) {
 						// do nothing, continue
@@ -233,6 +342,11 @@ public class MainActivity extends Activity {
 				}
 			if (exhausted)
 				break;
+		}
+		if (counter > 0) {
+			selectedIndex = randomGenerator.nextInt(counter);
+			duration = durations[selectedIndex];
+			return candidates[selectedIndex];
 		}
 		return null;
 	}
